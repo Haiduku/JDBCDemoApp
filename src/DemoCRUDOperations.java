@@ -15,8 +15,6 @@ import java.util.Scanner;
  */
 public class DemoCRUDOperations {
 
-   private static final String URL ="jdbc:postgresql://54.93.65.5:5432/Haiduk_Agenda";
-
 
     public static void main(String[] args) {
         System.out.println("AgendaTa versiunea 2.0");
@@ -27,45 +25,26 @@ public class DemoCRUDOperations {
             int option = 0;
         do {
             printMenu();
+            System.out.println("Select option: ");
             option = in.nextInt();
             switch (option) {
                 case 1:
-                    demoRead();
+                    listAgenda();
                     break;
                 case 2:
-                    demoCreate();
+                    create();
                     break;
                 case 3:
-                    demoUpdate();
+                    update();
                     break;
                 case 4:
-                    demoDelete();
+                    delete();
                     break;
                 case 5:
                     System.out.println("Bye!");
                     break;
             }
             }while (option != 5);
-
-
-
-
-
-
-
-
-
-
-//            demo CRUD operations
-//            demoCreate();
-//
-//            demoUpdate();
-//            demoDelete();
-
-           // demoBlobInsert();
-           // demoBlobRead();
-
-
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -75,43 +54,29 @@ public class DemoCRUDOperations {
 
     }
 
-    private static void demoCreate() throws ClassNotFoundException, SQLException {
+    private static void create() throws ClassNotFoundException, SQLException {
 
-        // 1. load driver
-        Class.forName("org.postgresql.Driver");
-
-        // 2. define connection params to db
-        final String USERNAME = "fasttrackit_dev";
-        final String PASSWORD = "fasttrackit_dev";
-
-        // 3. obtain a connection
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        Connection conn = getConnection();
 
         // 4. create a query statement
         PreparedStatement pSt = conn.prepareStatement("INSERT INTO agendatelefonica (nume, prenume, numar_telefon ) VALUES (?,?,?)");
-        pSt.setString(1, "Anghel");
-        pSt.setString(2, "Cristian");
-        pSt.setString(3, "0744 232 111");
+        Contact newContact = readFromKeyboard();
+
+        pSt.setString(1, newContact.getNume());
+        pSt.setString(2, newContact.getPrenume());
+        pSt.setString(3, newContact.getNumarTelefon());
 
         // 5. execute a prepared statement
-        int rowsInserted = pSt.executeUpdate();
+        pSt.executeUpdate();
 
         // 6. close the objects
         pSt.close();
         conn.close();
     }
 
-    private static void demoRead() throws ClassNotFoundException, SQLException {
-        // 1. load driver
-        Class.forName("org.postgresql.Driver");
+    private static void listAgenda() throws ClassNotFoundException, SQLException {
+        Connection conn = getConnection();
 
-        // 2. define connection params to db
-        final String URL = "jdbc:postgresql://54.93.65.5:5432/Haiduk_Agenda";
-        final String USERNAME = "fasttrackit_dev";
-        final String PASSWORD = "fasttrackit_dev";
-
-        // 3. obtain a connection
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 
         // 4. create a query statement
         Statement st = conn.createStatement();
@@ -134,24 +99,29 @@ public class DemoCRUDOperations {
         conn.close();
     }
 
-    private static void demoUpdate() throws ClassNotFoundException, SQLException {
 
-        // 1. load driver
-        Class.forName("org.postgresql.Driver");
 
-        // 2. define connection params to db
-        final String USERNAME = "fasttrackit_dev";
-        final String PASSWORD = "fasttrackit_dev";
+    private static void update() throws ClassNotFoundException, SQLException {
 
-        // 3. obtain a connection
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        Connection conn = getConnection();
+        System.out.print("Select the name you want to update");
+        Scanner in = new Scanner(System.in);
+        String updatedName = in.nextLine();
+
+//        Statement st = conn.createStatement();
+//        ResultSet rs = st.executeQuery("SELECT COUNT (*) from agendatelefonica WHERE nume = "+updatedName);
+//
+//        if(rs.next())
+
+        Contact update = readFromKeyboard();
+
 
         // 4. create a query statement
         PreparedStatement pSt = conn.prepareStatement("UPDATE agendatelefonica SET nume=?, prenume=?, numar_telefon=? WHERE nume=?"); //so we have 3 params
-        pSt.setString(1, "Mihaita");
-        pSt.setString(2, "Daniel");
-        pSt.setString(3, "0727 898 464");
-        pSt.setString(4, "Mihai");
+        pSt.setString(1, update.getNume());
+        pSt.setString(2, update.getPrenume());
+        pSt.setString(3, update.getNumarTelefon());
+        pSt.setString(4, updatedName);
 
         // 5. execute a prepared statement
         int rowsUpdated = pSt.executeUpdate();
@@ -162,17 +132,9 @@ public class DemoCRUDOperations {
     }
 
 
-    private static void demoDelete() throws ClassNotFoundException, SQLException {
+    private static void delete() throws ClassNotFoundException, SQLException {
 
-        // 1. load driver
-        Class.forName("org.postgresql.Driver");
-
-        // 2. define connection params to db
-        final String USERNAME = "fasttrackit_dev";
-        final String PASSWORD = "fasttrackit_dev";
-
-        // 3. obtain a connection
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        Connection conn = getConnection();
 
         // 4. create a query statement
         PreparedStatement pSt = conn.prepareStatement("DELETE FROM agendatelefonica WHERE nume=?");
@@ -192,6 +154,33 @@ public class DemoCRUDOperations {
         System.out.println("4. Delete");
         System.out.println("5. Exit");
 
+    }
+    private static Connection getConnection() throws ClassNotFoundException, SQLException {
+        // 1. load driver
+        Class.forName("org.postgresql.Driver");
+
+        // 2. define connection params to db
+        final String URL = "jdbc:postgresql://54.93.65.5:5432/Haiduk_Agenda";
+        final String USERNAME = "fasttrackit_dev";
+        final String PASSWORD = "fasttrackit_dev";
+
+        // 3. obtain a connection
+        return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+    }
+
+    private static Contact readFromKeyboard(){
+        Scanner in = new Scanner(System.in);
+        Contact newContact = new Contact();
+        System.out.print("Enter Last Name: ");
+        newContact.setNume(in.nextLine());
+        System.out.print("Enter First Name: ");
+        newContact.setPrenume(in.nextLine());
+        System.out.print("Enter Telephone Number: ");
+        newContact.setNumarTelefon(in.nextLine());
+
+
+
+        return newContact;
     }
 }
 
